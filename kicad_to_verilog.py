@@ -113,9 +113,9 @@ if __name__ == "__main__":
             print(f'{mangle(val)} {mangle(c)} (')
             for pin, net in pins.items():
                 if net in vcc:
-                    net = "1b'1"
+                    net = "1'b1"
                 elif net in gnd:
-                    net = "1b'0"
+                    net = "1'b0"
                 else:
                     net = mangle(net)
                 print(f'  ._{(pin)}({net})')
