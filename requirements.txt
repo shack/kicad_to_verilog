@@ -1,1 +1,2 @@
 tinysexpr>=1.1
+tyro>=0.9.19
