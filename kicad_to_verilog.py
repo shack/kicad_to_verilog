@@ -132,6 +132,8 @@ def main(file: pathlib.Path,
     # the following map maps signals to a pair of (bus, index)
     # of the bus signal and the according index
     signals_to_buses = {}
+    cs = set()
+    single_in_interface = set()
     # print module header if interface was found
     if interface:
         def get_net_io(ty):
@@ -150,6 +152,7 @@ def main(file: pathlib.Path,
         # get all the nets that connect to the interface
         cs = set(connections[interface].values()) - (vcc | gnd)
         # check if some of them are buses
+        output = []
         for bus, pos_to_signal in buses.items():
             bus_signals = { s: i for i, s in pos_to_signal.items() }
             if bus_signals.keys() < cs:
@@ -159,11 +162,13 @@ def main(file: pathlib.Path,
                 io = get_net_io(tys)
                 assert io, 'bus has no io type'
                 signals_to_buses |= { s: (bus, i) for s, i in bus_signals.items() }
-                print(f'  {io} [{u}:{l}] {mangle(bus)},')
+                output += [ f'{io} [{u}:{l}] {mangle(bus)}' ]
         for c in sorted(cs):
             if not c in signals_to_buses:
                 if io := get_net_io(nets[c]):
-                    print(f'  {io} {mangle(c)},')
+                    output += [ f'{io} {mangle(c)}' ]
+                    single_in_interface.add(c)
+        print('  ' + ',\n  '.join(output))
         print(');')
 
     # print wire declarations
@@ -171,10 +176,11 @@ def main(file: pathlib.Path,
         for w in sorted(nets):
             if w in signals_to_buses:
                 bus, idx = signals_to_buses[w]
-                init = f' = {bus}[{idx}]'
-            else:
+                init = f' = {mangle(bus)}[{idx}]'
+                print(f'  wire {mangle(w)}{init};')
+            elif not w in single_in_interface:
                 init = ''
-            print(f'  wire {mangle(w)}{init}')
+                print(f'  wire {mangle(w)}{init};')
 
     pulled_up = set()
     pulled_down = set()
@@ -205,6 +211,7 @@ def main(file: pathlib.Path,
                         f'got resistor between {nets[0]} and {nets[1]}'
         else:
             print(f'  {mangle(val)} {mangle(c)} (')
+            output = []
             for pin, net in pins.items():
                 if net in vcc:
                     net = "1'b1"
@@ -212,8 +219,9 @@ def main(file: pathlib.Path,
                     net = "1'b0"
                 else:
                     net = mangle(net)
-                print(f'    ._{(pin)}({net})')
-            print('  )')
+                output  += [ f'._{(pin)}({net})' ]
+            print('    ' + ',\n    '.join(output))
+            print('  );')
 
     if interface:
         print('endmodule')
