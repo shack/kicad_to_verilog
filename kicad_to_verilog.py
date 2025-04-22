@@ -139,12 +139,11 @@ def main(file: pathlib.Path,
                 return None
             if 'tri_state' in ty:
                 return 'inout'
+            elif 'output' in ty:
+                return 'output'
             elif 'input' in ty:
                 assert not 'output' in ty
                 return 'input'
-            elif 'output' in ty:
-                assert not 'input' in ty
-                return 'output'
 
         buses = get_buses(nets, bus_pattern)
         print(f'module {mangle(components[interface])} (')
