@@ -110,7 +110,7 @@ def main(file: pathlib.Path,
             for p in get(c, 'property'):
                 n = get_kv(p, 'name')
                 v = get_kv(p, 'value')
-                if module and n == 'kicad_to_verilog' and v == 'interface':
+                if module and n == 'kicad_to_verilog_interface':
                     interface = ref
 
     connections = { c: {} for c in components }
