@@ -25,3 +25,5 @@ For each net, it will be checked in what way it connects to the other symbols
 on your schematics. If it connects to at least one output pins, that net is
 seen as an `out` parameter of the interface, if it connects only to input pins,
 it is treated as an input, if it has a `tri_state` connection, it is `inout`.
+
+The name of the module is taken from the `Value` field of the symbol's properties.
