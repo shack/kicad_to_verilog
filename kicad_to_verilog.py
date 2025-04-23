@@ -187,6 +187,9 @@ def main(file: pathlib.Path,
     pulled_up = set()
     pulled_down = set()
     for c, pins in connections.items():
+        if interface == c:
+            # we don't want to print the interface itself
+            continue
         val = components[c]
         # detect bypass caps
         if re.fullmatch(r'C\d+', c):
