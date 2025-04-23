@@ -128,7 +128,10 @@ def main(file: pathlib.Path,
             for node in get(net, 'node'):
                 unit = get_kv(node, 'ref')
                 pin  = get_kv(node, 'pin')
-                connections[unit][pin] = name
+                ty   = get_kv(node, 'pintype')
+                if not 'power' in ty:
+                    # ignore power supply pins
+                    connections[unit][pin] = name
 
     # if we print a module description, we will try to find buses
     # the following map maps signals to a pair of (bus, index)
