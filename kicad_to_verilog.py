@@ -83,7 +83,7 @@ def get_buses(wires, bus_pattern):
 def main(file: pathlib.Path,
          wires: bool = True,
          module: bool = True,
-         pin_prefix: str = 'pin_',
+         pin_prefix: str = '_',
          bus_pattern: str = r'([/_a-zA-Z]+)(\d+)'):
     """
     Convert a KiCad netlist to Verilog.
