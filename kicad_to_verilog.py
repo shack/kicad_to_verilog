@@ -84,6 +84,7 @@ def main(file: pathlib.Path,
          wires: bool = True,
          module: bool = True,
          pin_prefix: str = '_',
+         dump_vcd: bool = True,
          bus_pattern: str = r'([/_a-zA-Z]+)(\d+)'):
     """
     Convert a KiCad netlist to Verilog.
@@ -93,6 +94,7 @@ def main(file: pathlib.Path,
         wires: If True, print wire declarations.
         module: If True, print a module declaration if the file has an interface.
         pin_prefix: The prefix for pin names.
+        dump_vcd: If True, print VCD dump commands.
         bus_pattern: The regex pattern to match bus names and indices.
     """
 
@@ -112,8 +114,11 @@ def main(file: pathlib.Path,
             for p in get(c, 'property'):
                 n = get_kv(p, 'name')
                 v = get_kv(p, 'value')
-                if module and n == 'kicad_to_verilog_interface':
-                    interface = ref
+                match n:
+                    case 'kicad_to_verilog_interface' if module:
+                        interface = ref
+                    case 'kicad_to_verilog_ignore':
+                        del components[ref]
 
     connections = { c: {} for c in components }
     nets = {}
@@ -189,6 +194,7 @@ def main(file: pathlib.Path,
 
     pulled_up = set()
     pulled_down = set()
+    connection_components = {}
     for c, pins in connections.items():
         if interface == c:
             # we don't want to print the interface itself
@@ -218,6 +224,7 @@ def main(file: pathlib.Path,
                     assert False, 'only pull-up/down resistors are supported, ' \
                         f'got resistor between {nets[0]} and {nets[1]}'
         else:
+            connection_components[c] = val
             print(f'  {mangle(val)} {mangle(c)} (')
             output = []
             for pin, net in pins.items():
@@ -231,6 +238,16 @@ def main(file: pathlib.Path,
             print('    ' + ',\n    '.join(output))
             print('  );')
 
+    if module and dump_vcd:
+        indent = '  '
+        print(f'{indent}initial\n{indent}begin\n{indent * 2}$dumpfile("{mangle(components[interface])}.vcd");')
+        for i, (k, v) in enumerate(connection_components.items()):
+            print(f'{indent * 2}$dumpvars({i}, {mangle(k)});');
+        print(f'{indent}end')
+        # initial begin $dumpfile("alu_dump.vcd")
+        # $dumpvars(1, ALU)
+        # end
+        # unconnected
     if interface:
         print('endmodule')
 
